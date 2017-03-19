@@ -42,13 +42,23 @@ object WordCountSQL {
     val env = ExecutionEnvironment.getExecutionEnvironment
     val tEnv = TableEnvironment.getTableEnvironment(env)
 
-    val input = env.fromElements(WC("hello", 1), WC("hello", 1), WC("ciao", 1))
+    val input1 = env.fromElements(WC("hello", 1), WC("hello", 1), WC("ciao", 1))
 
     // register the DataSet as table "WordCount"
-    tEnv.registerDataSet("WordCount", input, 'word, 'frequency)
+    tEnv.registerDataSet("WordCount1", input1, 'word1, 'frequency1)
+
+    val input2 = env.fromElements(WC("hello", 1), WC("hello", 1), WC("ciao", 1))
+
+    // register the DataSet as table "WordCount"
+    tEnv.registerDataSet("WordCount2", input2, 'word2, 'frequency2)
 
     // run a SQL query on the Table and retrieve the result as a new Table
-    val table = tEnv.sql("SELECT word, SUM(frequency) FROM WordCount GROUP BY word")
+    val table = tEnv.sql(
+      """
+        |SELECT word1, SUM(frequency2)
+        |FROM WordCount1 w1 join WordCount2 w2 on w1.word1 = w2.word2
+        |GROUP BY word1
+      """.stripMargin)
 
     table.toDataSet[WC].print()
   }
